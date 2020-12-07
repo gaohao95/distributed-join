@@ -113,12 +113,12 @@ void run_all_to_all(int64_t size,
   for (int run = 0; run < REPEAT; run++) {
     communicator->start();
 
-    for (int irank = 0; irank < mpi_size; irank++) {
-      if (irank != mpi_rank) communicator->send(send_buffer[irank], size / mpi_size, 1, irank);
-    }
+    for (int k = 1; k < mpi_size; k++) {
+      int send_partner = (mpi_rank + k) % mpi_size;
+      int recv_partner = (mpi_rank - k + mpi_size) % mpi_size;
 
-    for (int irank = 0; irank < mpi_size; irank++) {
-      if (irank != mpi_rank) communicator->recv(recv_buffer[irank], size / mpi_size, 1, irank);
+      communicator->send(send_buffer[send_partner], size / mpi_size, 1, send_partner);
+      communicator->recv(recv_buffer[recv_partner], size / mpi_size, 1, recv_partner);
     }
 
     communicator->stop();
